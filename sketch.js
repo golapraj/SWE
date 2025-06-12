@@ -4,16 +4,15 @@ let moleVisible = true;
 let score = 0;
 let moleTimer;
 let startTime;
-let gameDuration = 30; // seconds
+let gameDuration = 30;
 let gameActive = false;
-let startButton;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   createHoles();
 
-  startButton = createButton('Start / Restart');
-  startButton.position(20, 20);
+  // Bind HTML button
+  let startButton = select('#startButton');
   startButton.mousePressed(startGame);
 }
 
@@ -24,26 +23,26 @@ function startGame() {
   moveMole();
   moleTimer = setInterval(moveMole, 1000);
   startTime = millis();
-  loop(); // ensure draw loop runs
+  updateScoreDisplay();
+  updateTimerDisplay();
+  loop();
 }
 
 function draw() {
   background(180, 220, 150);
   drawHoles();
   if (moleVisible && gameActive) drawMole();
-  displayScore();
-  displayTimer();
 
-  // End game after time runs out
-  if (gameActive && millis() - startTime > gameDuration * 1000) {
-    gameActive = false;
-    moleVisible = false;
-    clearInterval(moleTimer);
-    textSize(32);
-    textAlign(CENTER, CENTER);
-    fill(255, 0, 0);
-    text("Time's up!", width / 2, height / 2);
-    noLoop(); // stop draw loop
+  if (gameActive) {
+    updateTimerDisplay();
+
+    if (millis() - startTime > gameDuration * 1000) {
+      gameActive = false;
+      moleVisible = false;
+      clearInterval(moleTimer);
+      noLoop();
+      select('#timerDisplay').html('0');
+    }
   }
 }
 
@@ -56,6 +55,7 @@ function mousePressed() {
   if (d < moleSize / 2) {
     score++;
     moleVisible = false;
+    updateScoreDisplay();
   }
 }
 
@@ -64,21 +64,13 @@ function moveMole() {
   moleVisible = true;
 }
 
-function displayScore() {
-  fill(0);
-  textSize(min(width, height) / 25);
-  textAlign(LEFT, TOP);
-  text('Score: ' + score, 10, 10 + min(width, height) / 20);
+function updateScoreDisplay() {
+  select('#scoreDisplay').html(score);
 }
 
-function displayTimer() {
-  if (gameActive) {
-    fill(0);
-    textSize(min(width, height) / 30);
-    textAlign(LEFT, TOP);
-    let timeLeft = max(0, gameDuration - floor((millis() - startTime) / 1000));
-    text('Time left: ' + timeLeft, 10, 10 + min(width, height) / 10);
-  }
+function updateTimerDisplay() {
+  let timeLeft = max(0, gameDuration - floor((millis() - startTime) / 1000));
+  select('#timerDisplay').html(timeLeft);
 }
 
 function createHoles() {
